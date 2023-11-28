@@ -11,8 +11,6 @@
 (defparameter *foo-num* 5)
 (defparameter *foo-hp-max* 25)
 
-(defparameter *player* (make-player :damage '(6 . (1 . 3))))
-
 (defun init-foos (*random-state*)
   (mapcar (lambda (hp) (make-foo :hp hp))
           (loop for x to *foo-num*
@@ -46,8 +44,7 @@
         (damage-b (cdr (player-damage player))))
     (+ damage-a (ndf (car damage-b) (cdr damage-b) *random-state*))))
 
-(player-damage-det *player* *random-state*)
-
 (defun main ()
-  (let ((foos ())))
-  )
+  (let ((foos (init-foos *random-state*))
+        (player (make-player :damage '(6 . (1 . 3))))))
+  ())
