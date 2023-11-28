@@ -46,5 +46,6 @@
 
 (defun main ()
   (let ((foos (init-foos *random-state*))
-        (player (make-player :damage '(6 . (1 . 3))))))
-  ())
+        (player (make-player :damage '(6 . (1 . 3)))))
+    (mapc #'foo-print foos)
+    (player-damage-desc player)))
