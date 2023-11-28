@@ -26,10 +26,10 @@
 (defun player-damage-desc (player)
   (let ((damage-a (car (player-damage player)))
         (damage-b (cdr (player-damage player))))
-    (format t "[~d~~~d] ~d+~a~c"
+    (format nil "[~d~~~d] ~d+~a"
             (+ damage-a (dice-min damage-b))
             (+ damage-a (dice-max damage-b))
-            damage-a (dice-desc damage-b) #\newline)))
+            damage-a (dice-desc damage-b))))
 
 (defun 1df (f *random-state*)
   (1+ (random f *random-state*)))
@@ -44,8 +44,22 @@
         (damage-b (cdr (player-damage player))))
     (+ damage-a (ndf (car damage-b) (cdr damage-b) *random-state*))))
 
-(defun main ()
+(defun print-combat
   (let ((foos (init-foos *random-state*))
         (player (make-player :damage '(6 . (1 . 3)))))
-    (mapc #'foo-print foos)
-    (player-damage-desc player)))
+    (reduce (lambda (acc foo)
+              (format t "[~d] " acc)
+              (foo-print foo)
+              (1+ acc))
+            foos
+            :initial-value 0)
+    (format t "attack damage: ~a~c"
+            (player-damage-desc player)
+            #\newline)
+    (princ "select target: ")))
+
+(defun read-combat () ())
+
+(defun eval-combat () ())
+
+(defun loop-combat () ())
