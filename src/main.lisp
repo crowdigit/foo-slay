@@ -44,7 +44,7 @@
         (damage-b (cdr (player-damage player))))
     (+ damage-a (ndf (car damage-b) (cdr damage-b) *random-state*))))
 
-(defun print-combat
+(defun print-combat ()
   (let ((foos (init-foos *random-state*))
         (player (make-player :damage '(6 . (1 . 3)))))
     (reduce (lambda (acc foo)
@@ -58,8 +58,23 @@
             #\newline)
     (princ "select target: ")))
 
-(defun read-combat () ())
+(defstruct state
+  eof)
 
-(defun eval-combat () ())
+(defun game-loop (state)
+  (loop (game-print (game-eval (game-read state) state) state)))
 
-(defun loop-combat () ())
+(defun game-print (data state)
+  (format t "~s~c" data #\newline))
+
+(defun game-eval (data state) data)
+
+(defun game-read (state)
+  (let ((input (make-string-input-stream (read-line)))
+        (eof (state-eof state)))
+    (loop for x = (read input nil eof)
+          while (not (eq x eof)) 
+          collect x)))
+
+(let ((state (make-state :eof (gensym))))
+  (game-loop state))
