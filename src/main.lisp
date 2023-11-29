@@ -59,22 +59,33 @@
     (princ "select target: ")))
 
 (defstruct state
-  eof)
+  eof
+  running)
 
-(defun game-loop (state)
-  (loop (game-print (game-eval (game-read state) state) state)))
+(defun state-stop-running (state)
+  (make-state :eof (state-eof state)
+              :running nil))
 
-(defun game-print (data state)
-  (format t "~s~c" data #\newline))
+(defun game-r (state)
+  (handler-case
+    (let ((input (make-string-input-stream (read-line)))
+          (eof (state-eof state)))
+      (loop for x = (read input nil eof)
+            while (not (eq x eof)) 
+            collect x))
+    (reader-error () '(reader-error "invalid command"))))
 
-(defun game-eval (data state) data)
+(defun game-ep (state commands)
+  (let ((command (car commands))
+        (args (cdr commands)))
+    (cond ((eq 'quit command) (state-stop-running state))
+          ((eq 'reader-error command) (format t "~a~c" (car args) #\newline) state)
+          (t (format t "command: ~a, arguments: ~a~c" command args #\newline) state))))
 
-(defun game-read (state)
-  (let ((input (make-string-input-stream (read-line)))
-        (eof (state-eof state)))
-    (loop for x = (read input nil eof)
-          while (not (eq x eof)) 
-          collect x)))
+(defun game-l (state)
+  (let* ((commands (game-r state))
+         (state (game-ep state commands)))
+    (if (state-running state) (game-l state))))
 
-(let ((state (make-state :eof (gensym))))
-  (game-loop state))
+(let ((state (make-state :eof (gensym) :running t)))
+  (game-l state))
