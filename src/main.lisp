@@ -85,10 +85,11 @@
   (print-prompt))
 
 (defun game-l (state)
-  (let* ((commands (game-r)))
-    (game-e state commands)
-    (game-p state)
-    (if (state-running state) (game-l state))))
+  (let* ((commands (game-r))
+         (state (game-e state commands)))
+    (if (state-running state)
+        (progn (game-p state)
+               (game-l state)))))
 
 (let ((state (make-state :running t
                          :player (make-player :damage '(6 . (1 . 3)))
