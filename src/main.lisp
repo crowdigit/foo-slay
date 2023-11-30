@@ -98,8 +98,9 @@
         (progn (game-p state)
                (game-l state)))))
 
-(let ((state (make-state :running t
+(defun main ()
+  (let ((state (make-state :running t
                          :player (make-player :damage '(6 . (1 . 3)))
                          :foos (init-foos *random-state*))))
   (game-p state)
-  (game-l state))
+  (game-l state)))
