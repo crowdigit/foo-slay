@@ -61,10 +61,9 @@
 (defparameter *eof* (gensym))
 
 (defstruct state
-  running)
-
-(defun state-stop-running (state)
-  (make-state :running nil))
+  running 
+  player
+  foos)
 
 (defun game-r ()
   (handler-case
@@ -77,14 +76,17 @@
 (defun game-ep (state commands)
   (let ((command (car commands))
         (args (cdr commands)))
-    (cond ((eq 'quit command) (state-stop-running state))
-          ((eq 'reader-error command) (format t "~a~c" (car args) #\newline) state)
-          (t (format t "command: ~a, arguments: ~a~c" command args #\newline) state))))
+    (cond ((eq 'quit command) (setf (state-running state)))
+          ((eq 'reader-error command) (format t "~a~c" (car args) #\newline))
+          (t (format t "command: ~a, arguments: ~a~c" command args #\newline)))
+    state))
 
 (defun game-l (state)
   (let* ((commands (game-r))
          (state (game-ep state commands)))
     (if (state-running state) (game-l state))))
 
-(let ((state (make-state :running t)))
+(let ((state (make-state :running t
+                         :player (make-player :damage '(6 . (1 . 3)))
+                         :foos (init-foos *random-state*))))
   (game-l state))
