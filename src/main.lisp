@@ -8,8 +8,14 @@
 (defstruct player
   damage)
 
+(defstruct state
+  running 
+  player
+  foos)
+
 (defparameter *foo-num* 5)
 (defparameter *foo-hp-max* 25)
+(defparameter *eof* (gensym))
 
 (defun init-foos (*random-state*)
   (mapcar (lambda (hp) (make-foo :hp hp))
@@ -44,26 +50,19 @@
         (damage-b (cdr (player-damage player))))
     (+ damage-a (ndf (car damage-b) (cdr damage-b) *random-state*))))
 
-(defun print-combat ()
-  (let ((foos (init-foos *random-state*))
-        (player (make-player :damage '(6 . (1 . 3)))))
-    (reduce (lambda (acc foo)
+(defun print-state (state)
+  (reduce (lambda (acc foo)
               (format t "[~d] " acc)
               (foo-print foo)
               (1+ acc))
-            foos
+            (state-foos state)
             :initial-value 0)
     (format t "attack damage: ~a~c"
-            (player-damage-desc player)
-            #\newline)
-    (princ "select target: ")))
+            (player-damage-desc (state-player state))
+            #\newline))
 
-(defparameter *eof* (gensym))
-
-(defstruct state
-  running 
-  player
-  foos)
+(defun print-prompt ()
+  (princ "> "))
 
 (defun game-r ()
   (handler-case
@@ -71,22 +70,28 @@
       (loop for x = (read input nil *eof*)
             while (not (eq x *eof*)) 
             collect x))
-    (reader-error () '(reader-error "invalid command"))))
+    (reader-error () '(reader-error "invalid command syntax"))))
 
-(defun game-ep (state commands)
+(defun game-e (state commands)
   (let ((command (car commands))
         (args (cdr commands)))
-    (cond ((eq 'quit command) (setf (state-running state)))
+    (cond ((eq 'quit command) (setf (state-running state) nil))
           ((eq 'reader-error command) (format t "~a~c" (car args) #\newline))
-          (t (format t "command: ~a, arguments: ~a~c" command args #\newline)))
+          (t (format t "unknown command: ~a~c" command #\newline)))
     state))
 
+(defun game-p (state)
+  (print-state state)
+  (print-prompt))
+
 (defun game-l (state)
-  (let* ((commands (game-r))
-         (state (game-ep state commands)))
+  (let* ((commands (game-r)))
+    (game-e state commands)
+    (game-p state)
     (if (state-running state) (game-l state))))
 
 (let ((state (make-state :running t
                          :player (make-player :damage '(6 . (1 . 3)))
                          :foos (init-foos *random-state*))))
+  (game-p state)
   (game-l state))
