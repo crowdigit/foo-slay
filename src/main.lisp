@@ -72,12 +72,19 @@
             collect x))
     (reader-error () '(reader-error "invalid command syntax"))))
 
+(defun case-attack (state command args)
+  (format t "attack damage: ~a~c" (player-damage-det (state-player state) *random-state*) #\newline))
+
+(defun cond-command (state command args)
+  (cond ((eq 'quit command) (setf (state-running state) nil))
+        ((eq 'reader-error command) (format t "~a~c" (car args) #\newline))
+        ((eq 'attack command) (case-attack state command args))
+        (t (format t "unknown command: ~a~c" command #\newline))))
+
 (defun game-e (state commands)
   (let ((command (car commands))
         (args (cdr commands)))
-    (cond ((eq 'quit command) (setf (state-running state) nil))
-          ((eq 'reader-error command) (format t "~a~c" (car args) #\newline))
-          (t (format t "unknown command: ~a~c" command #\newline)))
+    (cond-command state command args)
     state))
 
 (defun game-p (state)
