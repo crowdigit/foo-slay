@@ -1,12 +1,17 @@
-(defpackage foo
+(defpackage asdarf
   (:use :cl))
-(in-package :foo)
+(in-package :asdarf)
 
 (defstruct foo
   hp)
 
-(defparameter *foo* (make-foo :hp 1234))
+(defparameter *foo-num* 5)
+(defparameter *foo-hp-max* 25)
 
-(format t "~a~c" (foo-hp *foo*) #\newline)
-(setf (foo-hp *foo*) 123)
-(format t "~a~c" (foo-hp *foo*) #\newline)
+(defun foo-print (foo)
+  (format t "Foo (HP: ~d)~c" (foo-hp foo) #\newline))
+
+(defun init-foos (*random-state*)
+  (mapcar (lambda (hp) (make-foo :hp hp))
+          (loop for x to *foo-num*
+                collect (random *foo-hp-max*))))

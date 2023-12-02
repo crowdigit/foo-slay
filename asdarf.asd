@@ -5,7 +5,9 @@
   :depends-on ()
   :components ((:module "src"
                 :components
-                ((:file "main"))))
+                ((:file "main")
+                 (:file "foo")
+                 (:file "player"))))
   :description ""
   :in-order-to ((test-op (test-op "asdarf/tests"))))
 
