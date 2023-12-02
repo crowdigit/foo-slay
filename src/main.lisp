@@ -22,6 +22,16 @@
           (loop for x from 1 to n
                 collect (1df f *random-state*))))
 
+(defun state-clear-foos (state)
+  (setf (state-foos state)
+        (reduce (lambda (acc foo)
+                  (if (/= 0 (foo-hp foo))
+                      (cons foo acc)
+                      acc))
+                (reverse (state-foos state))
+                :initial-value nil))
+  (setf (state-foo-num state) (length (state-foos state))))
+
 (defun print-state (state)
   (reduce (lambda (acc foo)
               (format t "[~d] " acc)
@@ -44,7 +54,7 @@
             collect x))
     (reader-error () '(reader-error "invalid command syntax"))))
 
-(defun case-attack (state command args)
+(defun case-attack (state args)
   (let ((target (car args)))
     (if (typep target 'integer)
         (if (< target (state-foo-num state))
@@ -56,7 +66,9 @@
               (format t "damage = ~a = ~a~c" dmg-range dmg-det #\newline)
               (format t "foo hp = max(~a - ~a, 0) = ~a~c" (foo-hp foo) dmg-det foo-hp-after #\newline) 
               (setf (foo-hp foo) foo-hp-after)
-              (if (= foo-hp-after 0) (format t "you killed target ~a~c" target #\newline)))
+              (if (= foo-hp-after 0)
+                  (progn (format t "you killed target ~a~c" target #\newline)
+                         (state-clear-foos state))))
             (format t "invalid target number~c" #\newline))
         (error (make-condition 'invalid-argument-type
                                :expected-type 'integer
@@ -66,7 +78,7 @@
   (cond ((eq 'quit command) (setf (state-running state) nil))
         ((eq 'reader-error command) (format t "~a~c" (car args) #\newline))
         (t (handler-case
-             (cond ((eq 'attack command) (case-attack state command args))
+             (cond ((eq 'attack command) (case-attack state args))
                    (t (format t "unknown command: ~a~c" command #\newline)))
              (asdarf-error (err) (format t "~a~c" err #\newline))))))
 
@@ -74,6 +86,9 @@
   (let ((command (car commands))
         (args (cdr commands)))
     (cond-command state command args)
+    (if (= 0 (state-foo-num state))
+        (progn (setf (state-running state) nil)
+               (format t "You killed them all! You murderer!")))
     state))
 
 (defun game-p (state)
