@@ -7,7 +7,8 @@
                 :components
                 ((:file "main")
                  (:file "foo")
-                 (:file "player"))))
+                 (:file "player")
+                 (:file "error"))))
   :description ""
   :in-order-to ((test-op (test-op "asdarf/tests"))))
 

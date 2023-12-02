@@ -8,10 +8,11 @@
 (defun player-damage-desc (player)
   (let ((damage-a (car (player-damage player)))
         (damage-b (cdr (player-damage player))))
-    (format nil "[~d~~~d] ~d+~a"
+    (format nil "~d+~a (~d~~~d)"
+            damage-a
+            (dice-desc damage-b)
             (+ damage-a (dice-min damage-b))
-            (+ damage-a (dice-max damage-b))
-            damage-a (dice-desc damage-b))))
+            (+ damage-a (dice-max damage-b)))))
 
 (defun player-damage-det (player *random-state*)
   (let ((damage-a (car (player-damage player)))

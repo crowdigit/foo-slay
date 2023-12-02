@@ -5,7 +5,8 @@
 (defstruct state
   running 
   player
-  foos)
+  foos
+  foo-num)
 
 (defparameter *eof* (gensym))
 
@@ -44,13 +45,30 @@
     (reader-error () '(reader-error "invalid command syntax"))))
 
 (defun case-attack (state command args)
-  (format t "attack damage: ~a~c" (player-damage-det (state-player state) *random-state*) #\newline))
+  (let ((target (car args)))
+    (if (typep target 'integer)
+        (if (< target (state-foo-num state))
+            (let* ((player (state-player state))
+                   (dmg-range (player-damage-desc player))
+                   (dmg-det (player-damage-det player *random-state*))
+                   (foo (nth target (state-foos state)))
+                   (foo-hp-after (max 0 (- (foo-hp foo) dmg-det))))
+              (format t "damage = ~a = ~a~c" dmg-range dmg-det #\newline)
+              (format t "foo hp = max(~a - ~a, 0) = ~a~c" (foo-hp foo) dmg-det foo-hp-after #\newline) 
+              (setf (foo-hp foo) foo-hp-after)
+              (if (= foo-hp-after 0) (format t "you killed target ~a~c" target #\newline)))
+            (format t "invalid target number~c" #\newline))
+        (error (make-condition 'invalid-argument-type
+                               :expected-type 'integer
+                               :value (car args))))))
 
 (defun cond-command (state command args)
   (cond ((eq 'quit command) (setf (state-running state) nil))
         ((eq 'reader-error command) (format t "~a~c" (car args) #\newline))
-        ((eq 'attack command) (case-attack state command args))
-        (t (format t "unknown command: ~a~c" command #\newline))))
+        (t (handler-case
+             (cond ((eq 'attack command) (case-attack state command args))
+                   (t (format t "unknown command: ~a~c" command #\newline)))
+             (asdarf-error (err) (format t "~a~c" err #\newline))))))
 
 (defun game-e (state commands)
   (let ((command (car commands))
@@ -72,6 +90,7 @@
 (defun main ()
   (let ((state (make-state :running t
                          :player (make-player :damage '(6 . (1 . 3)))
-                         :foos (init-foos *random-state*))))
+                         :foos (init-foos *random-state*)
+                         :foo-num *foo-num*)))
   (game-p state)
   (game-l state)))
