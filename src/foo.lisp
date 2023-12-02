@@ -14,4 +14,4 @@
 (defun init-foos (*random-state*)
   (mapcar (lambda (hp) (make-foo :hp hp))
           (loop for x to (1- *foo-num*)
-                collect (random *foo-hp-max*))))
+                collect (max 1 (random *foo-hp-max*)))))
